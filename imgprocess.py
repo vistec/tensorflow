@@ -58,4 +58,5 @@ with tf.Session() as sess:
     result = preprocess_for_train(img_data, 299, 299, boxes)
     plt.show(result.eval())
     plt.show()
+    print(123)
 
