@@ -4,16 +4,15 @@ import matplotlib.pyplot as plt
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-image_raw_data = tf.gfile.FastGFile("F:\Deep Learning\TFProjects\TensorflowProject\pic\cc.jpg",'rb').read()
+image_raw_data = tf.gfile.FastGFile("F:\Deep_Learning\TFProjects\TensorflowProject\pic\cc.jpg",'rb').read()
 
 with tf.Session() as sess:
-    img_data = tf.image.decode_jpeg(image_raw_data)
-
-    img_data = tf.image.resize_images(img_data,[300,300],method=3)
-
-    plt.imshow(img_data.eval())
-    plt.show()
-
+    # img_data = tf.image.decode_jpeg(image_raw_data)
+    #
+    # resize0 = tf.image.convert_image_dtype(img_data,dtype=tf.float32)
+    #
+    # img_data = tf.image.resize_images(resize0,[300,300],method=0)
+    #
     # batched = tf.expand_dims(
     #     tf.image.convert_image_dtype(img_data, tf.float32),
     #     0
@@ -25,6 +24,9 @@ with tf.Session() as sess:
     # plt.figure(1)
     # plt.imshow(result.eval().reshape([300,300,3]))
     # plt.show()
+
+    a = [[[1,3,4],[2,4,7]],[[1,3,4],[2,4,7]]]
+    print(tf.shape(a).eval())
 
 
     # img_data = tf.image.convert_image_dtype(resized, dtype=tf.uint8)

@@ -28,7 +28,7 @@ def preprocess_for_train(image,height,width,bbox):
         bbox = tf.constant(
             [0.0, 0.0, 1.0, 1.0],
             dtype=tf.float32,
-            shape=[1,1,4]
+            shape=[1,2,4]
         )
 
     if image.dtype != tf.float32:
@@ -49,12 +49,23 @@ def preprocess_for_train(image,height,width,bbox):
 
     return distorted_image
 
-image_raw_data = tf.gfile.FastGFile("F:\Deep Learning\TFProjects\TensorflowProject\pic\cc.jpg","rb").read()
+image_raw_data = tf.gfile.FastGFile("F:\Deep_Learning\TFProjects\TensorflowProject\pic\cc.jpg","rb").read()
 
 with tf.Session() as sess:
     img_data = tf.image.decode_jpeg(image_raw_data)
     boxes = tf.constant([[[0.05,0.5,0.9,0.7],[0.35,0.47,0.5,0.56]]])
 
+
     result = preprocess_for_train(img_data, 299, 299, boxes)
-    plt.show(result.eval())
+
+    result = tf.image.resize_images(result,[299,299],method=2)
+
+    batched = tf.expand_dims(
+        result,
+        0
+    )
+
+    result = tf.image.draw_bounding_boxes(batched, boxes)
+    plt.figure(1)
+    plt.imshow(result.eval().reshape([299,299,3]))
     plt.show()
