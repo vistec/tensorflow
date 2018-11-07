@@ -59,4 +59,5 @@ with tf.Session() as sess:
     plt.show(result.eval())
     plt.show()
     print(123)
+    print(777777)
 
