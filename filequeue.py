@@ -8,9 +8,9 @@ import tensorflow as tf
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-files = tf.train.match_filenames_once("D:/AI/pyprogram/tensorflow/data/data.tfrecords-*")
+files = tf.train.match_filenames_once("F:/Deep_Learning/TFProjects/TensorflowProject/path/data.tfrecords-*")
 
-filename_queue = tf.train.string_input_producer(files,shuffle=False,num_epochs=1)
+filename_queue = tf.train.string_input_producer(files,shuffle=False)
 
 reader = tf.TFRecordReader()
 
@@ -24,17 +24,34 @@ features = tf.parse_single_example(
     }
 )
 
-with tf.Session() as sess:
-    tf.local_variables_initializer().run()
+example,label = features['i'],features['j']
+batch_size = 3
+capacity = 1000 + 3 * batch_size
 
-    print(sess.run(files))
+example_batch, label_batch = tf.train.shuffle_batch(
+    [example,label],
+    batch_size=batch_size,
+    capacity=capacity,
+    min_after_dequeue=30
+)
+
+with tf.Session() as sess:
+    init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
+    sess.run(init_op)
+    # print(sess.run(files))
 
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(sess=sess,coord=coord)
 
-    for i in range(6):
-        print(sess.run([features['i'],features['j']]))
-        coord.request_stop()
-        coord.join(threads)
+    for i in range(54):
+        cur_example_batch, cur_label_batch = sess.run(
+            [example_batch,label_batch]
+        )
+        print(cur_example_batch,cur_label_batch)
+
+    coord.request_stop()
+    coord.join(threads)
+
+
 
 

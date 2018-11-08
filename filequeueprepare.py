@@ -13,7 +13,7 @@ num_shards = 2
 instances_per_shard = 2
 
 for i in range(num_shards):
-    filename = ('D:/AI/pyprogram/tensorflow/data/data-%.5d-of-%.5d' % (i,num_shards))
+    filename = ('F:/Deep_Learning/TFProjects/TensorflowProject/path/data.tfrecords-%.5d-of-%.5d' % (i,num_shards))
     writer = tf.python_io.TFRecordWriter(filename)
 
     for j in range(instances_per_shard):
