@@ -4,6 +4,7 @@ import tensorflow as tf
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
+
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -21,25 +22,25 @@ instances_per_shard = 2
 
 batch_size = 1
 
-image_raw_data = tf.gfile.FastGFile("F:\Deep_Learning\TFProjects\TensorflowProject\pic\cc.jpg",'rb').read()
-img_xx_data = Image.open("F:\Deep_Learning\TFProjects\TensorflowProject\pic\cc.jpg")
-img_xx_data.resize((300,300))
+# image_raw_data = tf.gfile.GFile("D:/AI/pyprogram/tensorflow/pic/cat.jpg",'rb').read()
+# img_data = tf.image.decode_jpeg(image_raw_data)
+# resize0 = tf.image.convert_image_dtype(img_data, dtype=tf.float32)
+# img_data = tf.image.resize_images(img_data, [300, 300], method=1)
+
+
+img_data = Image.open("D:/AI/pyprogram/tensorflow/pic/cat.jpg")
+img_data = img_data.resize((300,300))
+
 with tf.Session() as sess:
 
-    img_data = tf.image.decode_jpeg(image_raw_data)
+    print(img_data.tobytes())
 
-    # resize0 = tf.image.convert_image_dtype(img_data, dtype=tf.float32)
-    img_data = tf.image.resize_images(img_data, [300, 300], method=1)
-
-    # img_data = tf.cast(img_data,dtype=tf.int64)
-    # reshape_img_data = tf.reshape(img_data,shape=[300*300*3])
-
-    filename = ('F:/Deep_Learning/TFProjects/TensorflowProject/path/data_cat.tfrecords')
+    filename = (r'D:\AI\pyprogram\tensorflow\path\data_cat.tfrecords')
     writer = tf.python_io.TFRecordWriter(filename)
 
     example = tf.train.Example(features=tf.train.Features(
         feature={
-            'image_raw':_int64_feature(0),
+            'image_raw':_bytes_feature(img_data.tobytes()),
                 # _bytes_feature(img_xx_data.tobytes()),
             'label':_int64_feature(1)
         }
