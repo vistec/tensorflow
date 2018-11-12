@@ -5,67 +5,90 @@ import numpy as np
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-def distort_color(image, color_ordering=0):
-    if color_ordering == 0:
-        image = tf.image.random_brightness(image,max_delta=32. / 255.)
-        image = tf.image.random_saturation(image,lower=0.5,upper=1.5)
-        image = tf.image.random_hue(image,max_delta=0.2)
-        image = tf.image.random_contrast(image,lower=0.5,upper=1.5)
-    elif color_ordering == 1:
-        image = tf.image.random_saturation(image,lower=0.5,upper=1.5)
-        image = tf.image.random_brightness(image,max_delta=32. / 255.)
-        image = tf.image.random_contrast(image,lower=0.5,upper=1.5)
-        image = tf.image.random_hue(image,max_delta=0.2)
-    elif color_ordering == 2:
-        image = tf.image.random_hue(image,max_delta=0.2)
-        image = tf.image.random_saturation(image,lower=0.5,upper=1.5)
-        image = tf.image.random_saturation(image,lower=0.5,upper=1.5)
-        image = tf.image.random_contrast(image,lower=0.5,upper=1.5)
-    return tf.clip_by_value(image,0.0,1.0)
+# def distort_color(image, color_ordering=0):
+#     if color_ordering == 0:
+#         image = tf.image.random_brightness(image,max_delta=32. / 255.)
+#         image = tf.image.random_saturation(image,lower=0.5,upper=1.5)
+#         image = tf.image.random_hue(image,max_delta=0.2)
+#         image = tf.image.random_contrast(image,lower=0.5,upper=1.5)
+#     elif color_ordering == 1:
+#         image = tf.image.random_saturation(image,lower=0.5,upper=1.5)
+#         image = tf.image.random_brightness(image,max_delta=32. / 255.)
+#         image = tf.image.random_contrast(image,lower=0.5,upper=1.5)
+#         image = tf.image.random_hue(image,max_delta=0.2)
+#     elif color_ordering == 2:
+#         image = tf.image.random_hue(image,max_delta=0.2)
+#         image = tf.image.random_saturation(image,lower=0.5,upper=1.5)
+#         image = tf.image.random_saturation(image,lower=0.5,upper=1.5)
+#         image = tf.image.random_contrast(image,lower=0.5,upper=1.5)
+#     return tf.clip_by_value(image,0.0,1.0)
+#
+# def preprocess_for_train(image,height,width,bbox):
+#     if bbox is None:
+#         bbox = tf.constant(
+#             [0.0, 0.0, 1.0, 1.0],
+#             dtype=tf.float32,
+#             shape=[1,2,4]
+#         )
+#
+#     if image.dtype != tf.float32:
+#         image = tf.image.convert_image_dtype(image,dtype=tf.float32)
+#
+#     bbox_begin, bbox_size, _ = tf.image.sample_distorted_bounding_box(tf.shape(image),bounding_boxes=bbox)
+#
+#     distorted_image = tf.slice(image,bbox_begin,bbox_size)
+#
+#     distorted_image = tf.image.resize_images(
+#         distorted_image,
+#         [height,width],
+#         method=1
+#     )
+#
+#     distorted_image = tf.image.random_flip_left_right(distorted_image)
+#     distorted_image = distort_color(distorted_image,np.random.randint(3))
+#
+#     return distorted_image
 
-def preprocess_for_train(image,height,width,bbox):
-    if bbox is None:
-        bbox = tf.constant(
-            [0.0, 0.0, 1.0, 1.0],
-            dtype=tf.float32,
-            shape=[1,2,4]
-        )
 
-    if image.dtype != tf.float32:
-        image = tf.image.convert_image_dtype(image,dtype=tf.float32)
+catfile_queue = tf.train.string_input_producer(["F:\Deep_Learning\TFProjects\TensorflowProject\path\data_cat.tfrecords"])
+files = tf.train.match_filenames_once("F:/Deep_Learning/TFProjects/TensorflowProject/path/data.tfrecords-*")
 
-    bbox_begin, bbox_size, _ = tf.image.sample_distorted_bounding_box(tf.shape(image),bounding_boxes=bbox)
+filename_queue = tf.train.string_input_producer(files,shuffle=False)
+reader = tf.TFRecordReader()
+_, serialized_example = reader.read(filename_queue)
 
-    distorted_image = tf.slice(image,bbox_begin,bbox_size)
+features = tf.parse_single_example(
+    serialized_example,
+    features={
+        'i':tf.FixedLenFeature([],tf.int64),
+        'j':tf.FixedLenFeature([],tf.int64)
+    }
+)
 
-    distorted_image = tf.image.resize_images(
-        distorted_image,
-        [height,width],
-        method=1
-    )
+image = features['i']
+label = features['j']
 
-    distorted_image = tf.image.random_flip_left_right(distorted_image)
-    distorted_image = distort_color(distorted_image,np.random.randint(3))
-
-    return distorted_image
-
-image_raw_data = tf.gfile.FastGFile("F:\Deep_Learning\TFProjects\TensorflowProject\pic\cc.jpg","rb").read()
+image_batch, label_batch = tf.train.shuffle_batch(
+    [image,label],
+    batch_size=1,
+    capacity=100,
+    min_after_dequeue=30
+)
 
 with tf.Session() as sess:
-    img_data = tf.image.decode_jpeg(image_raw_data)
-    boxes = tf.constant([[[0.05,0.5,0.9,0.7],[0.35,0.47,0.5,0.56]]])
 
 
-    result = preprocess_for_train(img_data, 299, 299, boxes)
+    init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
+    sess.run(init_op)
 
-    result = tf.image.resize_images(result,[299,299],method=2)
+    coord = tf.train.Coordinator()
+    threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
-    batched = tf.expand_dims(
-        result,
-        0
+    cur_example_batch, cur_label_batch = sess.run(
+        [image_batch, label_batch]
     )
+    print(cur_example_batch, cur_label_batch)
 
-    result = tf.image.draw_bounding_boxes(batched, boxes)
-    plt.figure(1)
-    plt.imshow(result.eval().reshape([299,299,3]))
-    plt.show()
+    coord.request_stop()
+    coord.join(threads)
+
