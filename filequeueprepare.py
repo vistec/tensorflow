@@ -7,14 +7,15 @@ import matplotlib.pyplot as plt
 
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
-cwd = r"F:\Deep_Learning\TFProjects\TensorflowProject\pic"
+# F:\Deep_Learning\TFProjects\TensorflowProject\pic
+cwd = r"D:\AI\pyprogram\tensorflow\pic"
 
 pic_num = 0
 
 record_file_num = 0
+# F:\Deep_Learning\TFProjects\TensorflowProject\path
 
-file_path = r"F:\Deep_Learning\TFProjects\TensorflowProject\path"
+file_path = r"D:\AI\pyprogram\tensorflow\path"
 
 best_num = 1000
 # 总共写入多少文件
@@ -90,48 +91,40 @@ def preprocess_for_train(image,height,width,bbox):
 # img_data = Image.open("F:\Deep_Learning\TFProjects\TensorflowProject\pic\cc.jpg")
 # img_data = img_data.resize((300,300))
 
-files = tf.train.match_filenames_once('F:\Deep_Learning\TFProjects\TensorflowProject\pic\cc-*')
+# F:\Deep_Learning\TFProjects\TensorflowProject\pic\cc-*
+# D:\AI\pyprogram\tensorflow\pic
+
+
+files = tf.train.match_filenames_once(r'D:\AI\pyprogram\tensorflow\pic\cc-*')
 file_queue = tf.train.string_input_producer(files,shuffle=False)
+
 
 # https://www.jianshu.com/p/467cbc66875c?utm_source=oschina-app
 for index, name in enumerate(classes):
     class_path = os.path.join(cwd,name)
+    writer = tf.python_io.TFRecordWriter(os.path.join(file_path, "traindata_pets.tfrecords-000"))
     for img_name in os.listdir(class_path):
         pic_num = pic_num + 1
 
-        # if num > best_num:
-        #     num = 1
-        #     record_file_num += 1
-        #     tfrecord_file_name = ("traindata_pets.tfrecords-%.3d" % record_file_num)
-        #     writer = tf.python_io.TFRecordWriter(os.path.join(file_path,tfrecord_file_name))
+        if pic_num > best_num:
+            num = 1
+            record_file_num += 1
+            tfrecord_file_name = ("traindata_pets.tfrecords-%.3d" % record_file_num)
+            writer = tf.python_io.TFRecordWriter(os.path.join(file_path,tfrecord_file_name))
 
         img_path = os.path.join(class_path,img_name)
-        print(img_path)
+        img_data = Image.open(img_path)
+        img_data = img_data.resize([300,300])
+        img_data = img_data.tobytes()
+        example = tf.train.Example(
+            features=tf.train.Features(
+                feature = {
+                    'img_raw':_bytes_feature(img_data),
+                    'label':_int64_feature(index),
+                }
+            )
+        )
 
-
-
-
-# with tf.Session() as sess:
-#     init = tf.group(tf.global_variables_initializer(),tf.local_variables_initializer())
-#     sess.run(init)
-
-    # for file_name in files.eval():
-    #     img_data = Image.open(file_name)
-    #     img_data = img_data.resize([300,300])
-    #
-    #     filename = ('F:\Deep_Learning\TFProjects\TensorflowProject\path\data_cat-%s.tfrecords' % (file_name))
-    #
-    #     writer = tf.python_io.TFRecordWriter(filename)
-    #
-    #     example = tf.train.Example(features=tf.train.Features(
-    #         feature={
-    #             'image_raw':_bytes_feature(img_data.tobytes()),
-    #                 # _bytes_feature(img_xx_data.tobytes()),
-    #             'label':_int64_feature(1) # 0 for cat 1 for dog
-    #         }
-    #     ))
-    #
-    #     writer.write(example.SerializeToString())
-    #     writer.close()
-
+        writer.write(example.SerializeToString())
+    writer.close()
 

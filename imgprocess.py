@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
-
-catfile_queue = tf.train.string_input_producer([r"F:\Deep_Learning\TFProjects\TensorflowProject\path\data_cat.tfrecords"])
-files = tf.train.match_filenames_once(r"F:\Deep_Learning\TFProjects\TensorflowProject\path\data_cat.tfrecords")
+# F:\Deep_Learning\TFProjects\TensorflowProject\path\data_cat.tfrecords
+# D:\AI\pyprogram\tensorflow\path
+catfile_queue = tf.train.string_input_producer([r"D:\AI\pyprogram\tensorflow\path\data_pets.tfrecords"])
+files = tf.train.match_filenames_once(r"D:\AI\pyprogram\tensorflow\path\path\data_pets.tfrecords")
 
 filename_queue = tf.train.string_input_producer(files,shuffle=False)
 reader = tf.TFRecordReader()
