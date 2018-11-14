@@ -7,15 +7,15 @@ import matplotlib.pyplot as plt
 
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-# D:\AI\pyprogram\tensorflow\pic
-cwd = r"F:\Deep_Learning\TFProjects\TensorflowProject\pic"
+# F:\Deep_Learning\TFProjects\TensorflowProject\pic
+cwd = r"D:\AI\pyprogram\tensorflow\pic"
 
 pic_num = 0
 
 record_file_num = 0
 # D:\AI\pyprogram\tensorflow\path
 
-file_path = r"F:\Deep_Learning\TFProjects\TensorflowProject\path"
+file_path = r"D:\AI\pyprogram\tensorflow\path"
 
 best_num = 1000
 # 总共写入多少文件
@@ -99,15 +99,24 @@ if __name__ == '__main__':
 
             img_path = os.path.join(class_path,img_name)
             img_raw_data = tf.gfile.GFile(img_path,"rb").read()
-            img_data = tf.image.decode_jpeg(img_raw_data)
 
-
-            result = preprocess_for_train(img_data,300,300)
 
             with tf.Session() as sess:
+                # for i in range(3):
+                for i in range(3):
+                    img_data = tf.image.decode_jpeg(img_raw_data)
+                    result = preprocess_for_train(img_data,300,300)
 
-                plt.imshow(result.eval())
-                plt.show()
+                    # img_data = tf.image.convert_image_dtype(result,dtype=tf.float32)
+                    img_data = tf.image.encode_jpeg(img_data)
+
+                    # img_name = img_path + "_edited_%d" % i
+                    # with tf.gfile.GFile(img_name,"wb") as f:
+                    #     f.write(img_data.eval())
+
+
+                    plt.imshow(result.eval())
+                    plt.show()
 
 
     # writer = tf.python_io.TFRecordWriter(os.path.join(file_path, "traindata_pets.tfrecords-000"))
