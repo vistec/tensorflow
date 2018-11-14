@@ -2,36 +2,46 @@ import tensorflow as tf
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+from PIL import Image
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 # F:\Deep_Learning\TFProjects\TensorflowProject\path\data_cat.tfrecords
 # D:\AI\pyprogram\tensorflow\path
-catfile_queue = tf.train.string_input_producer([r"D:\AI\pyprogram\tensorflow\path\data_pets.tfrecords"])
-files = tf.train.match_filenames_once(r"D:\AI\pyprogram\tensorflow\path\path\data_pets.tfrecords")
 
-filename_queue = tf.train.string_input_producer(files,shuffle=False)
-reader = tf.TFRecordReader()
-_, serialized_example = reader.read(filename_queue)
+def read_and_decode_tfrecord(files):
 
-features = tf.parse_single_example(
-    serialized_example,
-    features={
-        'image_raw':tf.FixedLenFeature([],tf.string),
-        'label':tf.FixedLenFeature([],tf.int64)
-    }
-)
+    file_queue = tf.train.string_input_producer(files,shuffle=False)
+    reader = tf.TFRecordReader()
 
-image = tf.decode_raw(features['image_raw'],tf.uint8)
+    _, serialized_example = reader.read(file_queue)
 
-label = tf.cast(features['label'],tf.int32)
+    features = tf.parse_single_example(
+        serialized_example,
+        features={
+            'img_raw': tf.FixedLenFeature([], tf.string),
+            'label': tf.FixedLenFeature([], tf.int64)
+        }
+    )
 
-image = tf.reshape(image, [300, 300, 3])
+    label = tf.cast(features['label'], tf.int32)
+
+    image = tf.decode_raw(features['img_raw'], tf.uint8)
+    image = tf.reshape(image,[300, 300, 3])
+
+    return image,label
+
+
+
+files = tf.train.match_filenames_once(r"F:\Deep_Learning\TFProjects\TensorflowProject\path\traindata_pets.tfrecords-*")
+
+image, label = read_and_decode_tfrecord(files)
 
 image_batch, label_batch = tf.train.shuffle_batch(
-    [image,label],
-    batch_size=1,
-    capacity=100,
-    min_after_dequeue=30
+    [image, label],
+    batch_size=3,
+    num_threads=3,
+    capacity=1000,
+    min_after_dequeue=30,
 )
 
 with tf.Session() as sess:
@@ -42,9 +52,19 @@ with tf.Session() as sess:
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
     cur_example_batch, cur_label_batch = sess.run(
-        [image, label]
+        [image_batch, label_batch]
     )
-    print(cur_example_batch, cur_label_batch)
+    # b_image = Image.fromarray(cur_example_batch[0])
+
+    plt.imshow(cur_example_batch[0])
+    plt.axis('off')
+    plt.show()
+    plt.imshow(cur_example_batch[1])
+    plt.axis('off')
+    plt.show()
+    plt.imshow(cur_example_batch[2])
+    plt.axis('off')
+    plt.show()
 
     coord.request_stop()
     coord.join(threads)
