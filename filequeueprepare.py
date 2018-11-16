@@ -8,14 +8,14 @@ import matplotlib.pyplot as plt
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 # F:\Deep_Learning\TFProjects\TensorflowProject\pic
-cwd = r"D:\AI\pyprogram\tensorflow\pic"
+cwd = r"F:\Deep_Learning\TFProjects\TensorflowProject\pic"
 
 pic_num = 0
 
 record_file_num = 0
 # D:\AI\pyprogram\tensorflow\path
 
-file_path = r"D:\AI\pyprogram\tensorflow\path"
+file_path = r"F:\Deep_Learning\TFProjects\TensorflowProject\path"
 
 best_num = 1000
 # 总共写入多少文件
@@ -92,61 +92,62 @@ def preprocess_for_train(image,height,width):
 
 if __name__ == '__main__':
 
-    for index,name in enumerate(classes):
-        class_path = os.path.join(cwd,name)
-
-        for img_name in os.listdir(class_path):
-
-            img_path = os.path.join(class_path,img_name)
-            img_raw_data = tf.gfile.GFile(img_path,"rb").read()
-
-
-            with tf.Session() as sess:
-                # for i in range(3):
-                for i in range(3):
-                    img_data = tf.image.decode_jpeg(img_raw_data)
-                    result = preprocess_for_train(img_data,300,300)
-
-                    # img_data = tf.image.convert_image_dtype(result,dtype=tf.float32)
-                    img_data = tf.image.encode_jpeg(img_data)
-
-                    # img_name = img_path + "_edited_%d" % i
-                    # with tf.gfile.GFile(img_name,"wb") as f:
-                    #     f.write(img_data.eval())
-
-
-                    plt.imshow(result.eval())
-                    plt.show()
-
-
-    # writer = tf.python_io.TFRecordWriter(os.path.join(file_path, "traindata_pets.tfrecords-000"))
-    #
-    # for index, name in enumerate(classes):
+    # for index,name in enumerate(classes):
     #     class_path = os.path.join(cwd,name)
     #
     #     for img_name in os.listdir(class_path):
-    #         pic_num = pic_num + 1
-    #
-    #         if pic_num > best_num:
-    #             num = 1
-    #             record_file_num += 1
-    #             tfrecord_file_name = ("traindata_pets.tfrecords-%.3d" % record_file_num)
-    #             writer = tf.python_io.TFRecordWriter(os.path.join(file_path,tfrecord_file_name))
     #
     #         img_path = os.path.join(class_path,img_name)
+    #         img_raw_data = tf.gfile.GFile(img_path,"rb").read()
     #
-    #         img_data = Image.open(img_path)
-    #         img_data = img_data.resize([300,300])
-    #         img_data = img_data.tobytes()
-    #         example = tf.train.Example(
-    #             features=tf.train.Features(
-    #                 feature = {
-    #                     'img_raw':_bytes_feature(img_data),
-    #                     'label':_int64_feature(index),
-    #                 }
-    #             )
-    #         )
     #
-    #         writer.write(example.SerializeToString())
-    # writer.close()
+    #         with tf.Session() as sess:
+    #             # for i in range(3):
+    #             for i in range(3):
+    #                 img_data = tf.image.decode_jpeg(img_raw_data)
+    #                 result = preprocess_for_train(img_data,300,300)
+    #
+    #                 img_data = tf.image.convert_image_dtype(result,dtype=tf.uint8)
+    #                 img_data = tf.image.encode_jpeg(img_data)
+    #
+    #
+    #                 img_path_prefix = img_path.split('.')[0]
+    #                 img_name = img_path_prefix + "_edited_%d.jpg" % i
+    #                 with tf.gfile.GFile(img_name,"wb") as f:
+    #                     f.write(img_data.eval())
+
+                    # plt.imshow(result.eval())
+                    # plt.show()
+
+
+    writer = tf.python_io.TFRecordWriter(os.path.join(file_path, "traindata_pets.tfrecords-000"))
+
+    for index, name in enumerate(classes):
+        class_path = os.path.join(cwd,name)
+
+        for img_name in os.listdir(class_path):
+            pic_num = pic_num + 1
+
+            if pic_num > best_num:
+                num = 1
+                record_file_num += 1
+                tfrecord_file_name = ("traindata_pets.tfrecords-%.3d" % record_file_num)
+                writer = tf.python_io.TFRecordWriter(os.path.join(file_path,tfrecord_file_name))
+
+            img_path = os.path.join(class_path,img_name)
+
+            img_data = Image.open(img_path)
+            img_data = img_data.resize([300,300])
+            img_data = img_data.tobytes()
+            example = tf.train.Example(
+                features=tf.train.Features(
+                    feature = {
+                        'img_raw':_bytes_feature(img_data),
+                        'label':_int64_feature(index),
+                    }
+                )
+            )
+
+            writer.write(example.SerializeToString())
+    writer.close()
 
